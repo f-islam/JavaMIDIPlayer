@@ -16,6 +16,8 @@ public class JavaMIDIPlayer {
      */
     public static void main(String[] args) {
         // TODO code application logic here
+        MIDIPlayer player = new MIDIPlayer();
+        player.setVisible(true);
     }
     
 }
