@@ -14,31 +14,31 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequencer;
 import javax.swing.JOptionPane;
-
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.SwingUtilities;
-import javax.swing.filechooser.*;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
         
         
-public class MIDIPlayer extends javax.swing.JFrame {
+public class MIDIPlayer extends javax.swing.JFrame implements Runnable{
 
     /**
      * Creates new form MIDIPlayer
      */
     
     Sequencer sequencer;
-    JFileChooser fc;
     File file;
+    Thread t;
     
     public MIDIPlayer() {
         initComponents();
+        this.setLocationRelativeTo(null);   //center location
+        jProgressBar1.setMinimum(0);
+        jProgressBar1.setMaximum(100);
+        jProgressBar1.setStringPainted(true);
+        add(jProgressBar1);
     }
 
     /**
@@ -54,6 +54,11 @@ public class MIDIPlayer extends javax.swing.JFrame {
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jTextField1 = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
+        jTextField2 = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
+        jTextField3 = new javax.swing.JTextField();
+        jProgressBar1 = new javax.swing.JProgressBar();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Java MIDI Player");
@@ -80,22 +85,43 @@ public class MIDIPlayer extends javax.swing.JFrame {
             }
         });
 
+        jLabel1.setText("Ticks");
+
+        jTextField2.setText("0");
+
+        jLabel2.setText("Tempo");
+
+        jTextField3.setText("0");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, 87, Short.MAX_VALUE)
-                .addContainerGap())
             .addGroup(layout.createSequentialGroup()
-                .addGap(60, 60, 60)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(49, 49, 49))
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel1)
+                                            .addComponent(jLabel2))
+                                        .addGap(18, 18, 18)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                .addGap(26, 26, 26)
+                                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jTextField1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, 78, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -104,39 +130,107 @@ public class MIDIPlayer extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton3)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 103, Short.MAX_VALUE)
+                .addGap(27, 27, 27)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
                     .addComponent(jButton2))
-                .addGap(140, 140, 140))
+                .addGap(67, 67, 67)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 63, Short.MAX_VALUE)
+                .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(21, 21, 21))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    public void playMIDI( )
+
+    public void run()
     {
+        int percent = 0;
+        double totalTick = sequencer.getTickLength();
+
+        jProgressBar1.setMinimum(0);
+        jProgressBar1.setMaximum(100);
+        jProgressBar1.setValue(percent);
+        
+        while(percent < 100)
+        {
+            percent = (int)((sequencer.getTickPosition()/totalTick)*100);
+            jProgressBar1.setValue(percent);
+            try
+            {
+                java.lang.Thread.sleep(1000);
+            }
+            catch(InterruptedException ex)
+            {
+                
+            }
+        }      
+    }
+    
+    public void playMIDI( )
+    {      
+        if(file == null)
+        {
+            JOptionPane.showMessageDialog(this, "Select a file first!");
+            return;
+        }
+                        
+        if(sequencer != null && sequencer.isOpen())
+        {
+            try
+            {
+                sequencer.close();
+            }
+            catch(Exception ex)
+            {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+        }
+        
         try
         {
             sequencer = MidiSystem.getSequencer();
+            
+            if(sequencer == null)
+            {
+                JOptionPane.showMessageDialog(this, "sequencer device is not supported!");
+                return;
+            }
+           
             sequencer.open();
         
-            //InputStream st = new BufferedInputStream(new FileInputStream(new File("c:\\titanic.mid")));
-            InputStream st = new BufferedInputStream(new FileInputStream(new File(file.getPath())));
+            InputStream st = new BufferedInputStream(new FileInputStream(file));               
+                
             sequencer.setSequence(st);
-        
-            sequencer.start();        
+
+            long tick = sequencer.getTickLength();
+            jTextField2.setText(String.valueOf(tick));
+                
+            float curTempo = sequencer.getTempoInBPM();
+            jTextField3.setText(String.valueOf(curTempo));                              
+                
+            sequencer.start();
+                
+            t = new Thread(this);  //thread for progressbar
+            t.start();             //thread starts 
         }
         catch(Exception ex)
         {
             JOptionPane.showMessageDialog(this, ex.getMessage());
-        }
-                
+        }          
     }
     
     public void stopMIDI()
     {
-        if(sequencer.isRunning())
+        if(sequencer != null && sequencer.isRunning())
         {
             try
             {
@@ -163,12 +257,15 @@ public class MIDIPlayer extends javax.swing.JFrame {
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
-        fc = new JFileChooser();
+        JFileChooser fc = new JFileChooser();
+        FileFilter filter = new FileNameExtensionFilter("MIDI File","mid");
+        fc.setFileFilter(filter);
         int retVal = fc.showOpenDialog(this);
         
         if (retVal == JFileChooser.APPROVE_OPTION) {
             file = fc.getSelectedFile();
-            jTextField1.setText(file.getPath());           
+            jTextField1.setText(file.getPath());
+            playMIDI();
         }
     }//GEN-LAST:event_jButton3ActionPerformed
 
@@ -177,6 +274,11 @@ public class MIDIPlayer extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JTextField jTextField1;
+    private javax.swing.JTextField jTextField2;
+    private javax.swing.JTextField jTextField3;
     // End of variables declaration//GEN-END:variables
 }
